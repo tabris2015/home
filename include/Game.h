@@ -1,0 +1,299 @@
+//
+// Created by pepe on 27-01-19.
+//
+
+#ifndef HOME_GAME_H
+#define HOME_GAME_H
+
+#include "raylib.h"
+
+#include <vector>
+#include <iostream>
+#include "Sprite.h"
+
+#include "Player.h"
+#include "Enemy.h"
+#include "Wall.h"
+class Game
+{
+private:
+    int width_;
+    int height_;
+    bool game_over_;
+    bool pause_;
+    unsigned long frames_counter_;
+    Player player_;
+    std::vector<Enemy> enemies_;
+    std::vector<Wall> walls_;
+    Camera2D camera_;
+    Rectangle buildings[100];
+    Color buildColors[100];
+    Rectangle tiles[5];
+    Color tilesColors[5];
+
+public:
+    Game(int w, int h) : width_(w), height_(h), game_over_(false), pause_(false), frames_counter_(0)
+    {
+        InitWindow(w, h, "Home");
+
+        Init();
+    };
+
+    void Init()
+    {
+        Vector2 init_pos = {150, 950};
+        player_ = Player(init_pos, {0, 0}, 0, "../assets/jugador.png");
+        AddEnemy(Enemy({20, 20}, {0.5, -0.5},  "../assets/jugador.png"));
+        // enemigos
+        Vector2 small_init_pos[5] = {
+                {329, 740},
+                {671, 260},
+                {935, 665},
+                {1283, 935},
+                {1366, 565}
+        };
+
+        for(auto e: small_init_pos)
+        {
+            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.5f;
+            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.5f;
+
+//            AddEnemy(Enemy(e, {x_vel, y_vel},"../assets/"))
+        }
+
+        Vector2 medium_init_pos[5] = {
+                {73 , 568},
+                {622 , 490},
+                {1182, 790},
+                {1746, 590}
+        };
+
+        Vector2 large_init_pos[5] = {
+                {570 , 970},
+                {180 , 190},
+                {1280, 185},
+                {1780, 970}
+        };
+
+
+
+
+        // --------------------
+
+
+
+        Vector2 wall_init_[7] = {
+                {0, 450},
+                {522, 806},
+                {522, 91},
+                {960, 450},
+                {960, 1046},
+                {1514, 806},
+                {1672 , 0}
+        };
+        for(auto pos: wall_init_)
+        {
+            AddWall(Wall(pos, "../assets/paredgrande.png"));
+        }
+        // poner camara
+        camera_.target = player_.GetPosition();
+        camera_.offset = {init_pos.x - width_/2 + player_.GetRadius(), -init_pos.y + height_/2};
+        camera_.rotation = 0.0f;
+        camera_.zoom = 1.0f;
+
+
+
+        tiles[0] =       {0, 0, 1920, 1080};
+        tiles[1] =       {709, 0, 1210, 905};
+        tiles[2] =       {1017, 0, 902, 673};
+        tiles[3] =       {1375, 0, 545, 404};
+        tiles[4] =       {1600, 0, 320, 240};
+
+
+        tilesColors[0] = {0x02, 0x86, 0xba, 0xff};
+        tilesColors[1] = {0x0d, 0xa0, 0xd6, 0xff};
+        tilesColors[2] = {0x12, 0xb7, 0xe0, 0xff};
+        tilesColors[3] = {0x1c, 0xc3, 0xed, 0xff};
+        tilesColors[4] = {0x37, 0xd7, 0xff, 0xff};
+
+    }
+
+    float constrainAngle(float x){
+        x = fmod(x,360);
+        if (x < 0)
+            x += 360;
+        return x;
+    }
+    void AddEnemy(Enemy enemy)
+    {
+        enemies_.push_back(enemy);
+    }
+
+    void AddWall(Wall wall)
+    {
+        walls_.push_back(wall);
+    }
+    void Update()
+    {
+        if(!game_over_)
+        {
+            if (IsGamepadAvailable(GAMEPAD_PLAYER1))
+            {
+                if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 7))
+                {
+                    pause_ = !pause_;
+                }
+            }
+
+            if(!pause_)
+            {
+                frames_counter_++;
+                // Joystick rotation
+                if (IsGamepadAvailable(GAMEPAD_PLAYER1))
+                {
+
+                    if(IsGamepadButtonDown(GAMEPAD_PLAYER1, 18))
+                        player_.Rotate(-5);
+                    if(IsGamepadButtonDown(GAMEPAD_PLAYER1, 16))
+                        player_.Rotate(5);
+                    // Controller
+                    if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 0))
+                    {
+                        player_.Accelerate(0.04f);
+                    }
+                    else
+                    {
+                        player_.Accelerate(-0.02f);
+                    }
+
+                }
+
+                for(auto& enemy: enemies_)
+                    enemy.Update();
+
+
+
+                bool wall_hit = false;
+                for(auto wall: walls_)
+                {
+                    if(player_.CheckWall(wall))
+                    {
+                        // candidato
+                        wall_hit = true;
+
+                        // si el osbstaculo esta arriba
+                        float norm_angle = constrainAngle(player_.GetRotation());
+
+                        // la pared esta arriba y miramos abajo
+                        if(wall.GetPosition().y < player_.GetPosition().y && norm_angle > 180)
+                        {
+                            // liberamos
+                            wall_hit = false;
+                        }
+                        // la pared esta abajo y miramos arriba
+                        else if(wall.GetPosition().y > player_.GetPosition().y && norm_angle <= 180)
+                        {
+                            // liberamos
+                            wall_hit = false;
+                        }
+                        // la pared esta a la derecha y miramos izquierda
+                        else if(wall.GetPosition().x > player_.GetPosition().x && (norm_angle > 90 && norm_angle <= 270))
+                        {
+                            // liberamos
+                            wall_hit = false;
+                        }
+                        // la pared esta a la izquierda y miramos derecha
+                        else if(wall.GetPosition().x < player_.GetPosition().x &&
+                                (norm_angle <= 90 || norm_angle > 270))
+                        {
+                            // liberamos
+                            wall_hit = false;
+                        }
+
+                    }
+
+                }
+
+                if(!wall_hit)
+                {
+                    player_.Update();
+
+                    // update de la camara
+                    Vector2 d_pos = player_.GetDeltaPosition();
+                    camera_.offset.x -= d_pos.x;
+                    camera_.offset.y += d_pos.y;
+                    camera_.target = player_.GetPosition();
+                }
+
+
+                // check collisions
+                for(auto enemy: enemies_)
+                {
+                    if(player_.GetHealth() <= 0)
+                    {
+                        game_over_ = true;
+                        break;
+                    }
+                    else
+                    {
+                        player_.CheckDamage(enemy);
+                    }
+                }
+
+
+            }
+        }
+        else
+        {
+            // Joystick rotation
+            if (IsGamepadAvailable(GAMEPAD_PLAYER1))
+            {
+                if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 7))
+                {
+                    Init();
+                    game_over_ = false;
+                }
+            }
+        }
+        
+    }
+    void DrawBackground()
+    {
+
+        for (int i = 0; i < 5; i++)
+            DrawRectangleRec(tiles[i], tilesColors[i]);
+//        DrawRectangle(-6000, 320, 13000, 8000, DARKGRAY);
+//
+//        for (int i = 0; i < 100; i++) DrawRectangleRec(buildings[i], buildColors[i]);
+
+
+    }
+    void Draw()
+    {
+        if(!game_over_)
+        {
+
+            BeginMode2D(camera_);
+            DrawBackground();
+
+            player_.Draw();
+
+            for(auto wall: walls_) wall.Draw();
+
+            for(auto enemy: enemies_) enemy.Draw();
+
+            EndMode2D();
+            Vector2 p_pos = player_.GetPosition();
+            DrawText(FormatText("{%.01f},{%.01f}", p_pos.x, p_pos.y), 250, 15, 10, BLACK);
+        }
+        else
+        {
+            DrawText("PRESS [X] TO PLAY AGAIN",
+                     GetScreenWidth()/2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 10)/2,
+                     GetScreenHeight()/2,
+                     10,
+                     GRAY);
+        }
+    }
+};
+#endif //HOME_GAME_H
