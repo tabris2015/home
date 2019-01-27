@@ -37,6 +37,7 @@ public:
     {
         InitWindow(w, h, "Home");
         ToggleFullscreen();
+        // hola bola
         Init();
     };
 
