@@ -20,7 +20,7 @@ public:
     : position_(position), speed_(speed), sprite_(file)
     {
 
-        sprite_.SetColor(RED);
+        sprite_.SetColor(WHITE);
         sprite_.AddCircleCollider(CircleCollider(sprite_.GetWidth() / 2));
         sprite_.SetPose(position_, 0);
     }

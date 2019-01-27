@@ -20,6 +20,7 @@ private:
     int width_;
     int height_;
     bool game_over_;
+    bool victory_;
     bool pause_;
     unsigned long frames_counter_;
     Player player_;
@@ -30,7 +31,7 @@ private:
     Color buildColors[100];
     Rectangle tiles[5];
     Color tilesColors[5];
-
+    
 public:
     Game(int w, int h) : width_(w), height_(h), game_over_(false), pause_(false), frames_counter_(0)
     {
@@ -41,9 +42,10 @@ public:
 
     void Init()
     {
+
         Vector2 init_pos = {150, 950};
-        player_ = Player(init_pos, {0, 0}, 0, "../assets/jugador.png");
-        AddEnemy(Enemy({20, 20}, {0.5, -0.5},  "../assets/jugador.png"));
+        player_ = Player(init_pos, {0, 0}, 0, "../assets/personaje.png");
+//        AddEnemy(Enemy({20, 20}, {0.5, -0.5},  "../assets/jugador.png"));
         // enemigos
         Vector2 small_init_pos[5] = {
                 {329, 740},
@@ -53,15 +55,19 @@ public:
                 {1366, 565}
         };
         std::string small_sprites[5] = {
-
+            "../assets/enemigo_pequeno_1.png",
+            "../assets/enemigo_pequeno_2.png",
+            "../assets/enemigo_pequeno_3.png",
+            "../assets/enemigo_pequeno_4.png",
+            "../assets/enemigo_pequeno_5.png"
         };
 
-        for(auto e: small_init_pos)
+        for(int i= 0; i < 5; i++)
         {
             float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.5f;
             float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.5f;
 
-//            AddEnemy(Enemy(e, {x_vel, y_vel},"../assets/"))
+            AddEnemy(Enemy(small_init_pos[i], {x_vel, y_vel},small_sprites[i].c_str()));
         }
 
         Vector2 medium_init_pos[5] = {
@@ -70,6 +76,19 @@ public:
                 {1182, 790},
                 {1746, 590}
         };
+        std::string medium_sprites[5] = {
+            "../assets/enemigo_mediano_1.png",
+            "../assets/enemigo_mediano_2.png",
+            "../assets/enemigo_mediano_3.png",
+            "../assets/enemigo_mediano_4.png"
+        };
+        for(int i= 0; i < 4; i++)
+        {
+            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.0f;
+            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.0f;
+
+            AddEnemy(Enemy(medium_init_pos[i], {x_vel, y_vel},medium_sprites[i].c_str()));
+        }
 
         Vector2 large_init_pos[5] = {
                 {570 , 970},
@@ -78,8 +97,20 @@ public:
                 {1780, 970}
         };
 
+        std::string large_sprites[5] = {
+            "../assets/enemigo_grande_1.png",
+            "../assets/enemigo_grande_2.png",
+            "../assets/enemigo_grande_3.png",
+            "../assets/enemigo_grande_4.png"
+        };
 
+        for(int i= 0; i < 4; i++)
+        {
+            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 0.7f;
+            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 0.7f;
 
+            AddEnemy(Enemy(large_init_pos[i], {x_vel, y_vel},medium_sprites[i].c_str()));
+        }
 
         // --------------------
 
@@ -142,7 +173,8 @@ public:
         {
             if (IsGamepadAvailable(GAMEPAD_PLAYER1))
             {
-                if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 7))
+                if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 10))
+//                IsGamepadButtonPressed()
                 {
                     pause_ = !pause_;
                 }
@@ -155,12 +187,12 @@ public:
                 if (IsGamepadAvailable(GAMEPAD_PLAYER1))
                 {
 
-                    if(IsGamepadButtonDown(GAMEPAD_PLAYER1, 18))
+                    if(IsGamepadButtonDown(GAMEPAD_PLAYER1, 4))
                         player_.Rotate(-5);
-                    if(IsGamepadButtonDown(GAMEPAD_PLAYER1, 16))
+                    if(IsGamepadButtonDown(GAMEPAD_PLAYER1, 5))
                         player_.Rotate(5);
                     // Controller
-                    if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 0))
+                    if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 9))
                     {
                         player_.Accelerate(0.04f);
                     }
@@ -245,13 +277,23 @@ public:
 
 
             }
+            else
+            {
+                ClearBackground(RAYWHITE);
+                DrawText("PRESS [o] TO CONTINUE",
+                     GetScreenWidth()/2 - MeasureText("PRESS [o] TO CONTINUE", 10)/2,
+                     GetScreenHeight()/2,
+                     10,
+                     GRAY);
+            }
+            
         }
         else
         {
             // Joystick rotation
             if (IsGamepadAvailable(GAMEPAD_PLAYER1))
             {
-                if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 7))
+                if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 10))
                 {
                     Init();
                     game_over_ = false;
@@ -288,11 +330,12 @@ public:
             EndMode2D();
             Vector2 p_pos = player_.GetPosition();
             DrawText(FormatText("{%.01f},{%.01f}", p_pos.x, p_pos.y), 250, 15, 10, BLACK);
+            if (GetGamepadButtonPressed() != -1) DrawText(FormatText("DETECTED BUTTON: %i", GetGamepadButtonPressed()), 10, 43, 10, RED);
         }
         else
         {
-            DrawText("PRESS [X] TO PLAY AGAIN",
-                     GetScreenWidth()/2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 10)/2,
+            DrawText("PRESS [o] TO PLAY AGAIN",
+                     GetScreenWidth()/2 - MeasureText("PRESS [o] TO PLAY AGAIN", 10)/2,
                      GetScreenHeight()/2,
                      10,
                      GRAY);
