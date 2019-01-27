@@ -19,8 +19,6 @@ class Game
 private:
     int width_;
     int height_;
-    bool game_over_;
-    bool victory_;
     bool pause_;
     unsigned long frames_counter_;
     Player player_;
@@ -33,79 +31,104 @@ private:
     Color tilesColors[5];
     
 public:
-    Game(int w, int h) : width_(w), height_(h), game_over_(false), pause_(false), frames_counter_(0)
+    bool game_over_;
+    bool victory_;
+    bool is_splash;
+    void setSplash(bool splash){is_splash = splash;}
+    bool getSplash(){ return is_splash;}
+    Game(int w, int h) : width_(w), height_(h), game_over_(false), pause_(false), frames_counter_(0), is_splash(true)
     {
-        InitWindow(w, h, "Home");
-        ToggleFullscreen();
-        // hola bola
+        InitWindow(width_, height_, "Home");
+//        ToggleFullscreen();
         Init();
     };
 
     void Init()
     {
 
+        // hola bola
+        enemies_.clear();
+        walls_.clear();
+        victory_ = false;
+
         Vector2 init_pos = {150, 950};
         player_ = Player(init_pos, {0, 0}, 0, "../assets/personaje.png");
 //        AddEnemy(Enemy({20, 20}, {0.5, -0.5},  "../assets/jugador.png"));
         // enemigos
-        Vector2 small_init_pos[5] = {
+        Vector2 small_init_pos[8] = {
                 {329, 740},
                 {671, 260},
                 {935, 665},
                 {1283, 935},
-                {1366, 565}
+                {1366, 565},
+                {400, 555},
+                {700, 100},
+                {445, 935}
         };
-        std::string small_sprites[5] = {
+        std::string small_sprites[8] = {
             "../assets/enemigo_pequeno_1.png",
             "../assets/enemigo_pequeno_2.png",
             "../assets/enemigo_pequeno_3.png",
             "../assets/enemigo_pequeno_4.png",
+            "../assets/enemigo_pequeno_1.png",
+            "../assets/enemigo_pequeno_2.png",
+            "../assets/enemigo_pequeno_3.png",
             "../assets/enemigo_pequeno_5.png"
         };
 
-        for(int i= 0; i < 5; i++)
+        for(int i= 0; i < 8; i++)
         {
-            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.5f;
-            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.5f;
+            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.75f;
+            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.75f;
 
             AddEnemy(Enemy(small_init_pos[i], {x_vel, y_vel},small_sprites[i].c_str()));
         }
 
-        Vector2 medium_init_pos[5] = {
+        Vector2 medium_init_pos[7] = {
                 {73 , 568},
                 {622 , 490},
                 {1182, 790},
-                {1746, 590}
+                {1746, 590},
+                {222 , 49},
+                {182, 790},
+                {49 , 499}
         };
-        std::string medium_sprites[5] = {
+        std::string medium_sprites[7] = {
             "../assets/enemigo_mediano_1.png",
             "../assets/enemigo_mediano_2.png",
             "../assets/enemigo_mediano_3.png",
-            "../assets/enemigo_mediano_4.png"
+            "../assets/enemigo_mediano_4.png",
+            "../assets/enemigo_mediano_1.png",
+            "../assets/enemigo_mediano_2.png",
+            "../assets/enemigo_mediano_3.png",
         };
-        for(int i= 0; i < 4; i++)
+        for(int i= 0; i < 7; i++)
         {
-            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.0f;
-            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.0f;
+            float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.2f;
+            float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 1.2f;
 
             AddEnemy(Enemy(medium_init_pos[i], {x_vel, y_vel},medium_sprites[i].c_str()));
         }
 
-        Vector2 large_init_pos[5] = {
+        Vector2 large_init_pos[6] = {
                 {570 , 970},
                 {180 , 190},
                 {1280, 185},
-                {1780, 970}
+                {1780, 970},
+                {73 , 568},
+                {622 , 490}
         };
 
-        std::string large_sprites[5] = {
+        std::string large_sprites[6] = {
             "../assets/enemigo_grande_1.png",
             "../assets/enemigo_grande_2.png",
             "../assets/enemigo_grande_3.png",
-            "../assets/enemigo_grande_4.png"
+            "../assets/enemigo_grande_4.png",
+            "../assets/enemigo_grande_1.png",
+            "../assets/enemigo_grande_2.png"
         };
 
-        for(int i= 0; i < 4; i++)
+        for(int i= 0; i < 6; i++)
         {
             float x_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 0.7f;
             float y_vel = ((float)GetRandomValue(-100, 100) / 100.0f) * 0.7f;
@@ -151,6 +174,7 @@ public:
         tilesColors[3] = {0x1c, 0xc3, 0xed, 0xff};
         tilesColors[4] = {0x37, 0xd7, 0xff, 0xff};
 
+        is_splash = true;
     }
 
     float constrainAngle(float x){
@@ -253,7 +277,11 @@ public:
                 if(!wall_hit)
                 {
                     player_.Update();
-
+                    if (CheckCollisionCircleRec(player_.GetPosition(), player_.GetRadius(), {1870, 30, 50, 50}))
+                    {
+                        victory_ = true;
+                        game_over_ = true;
+                    }
                     // update de la camara
                     Vector2 d_pos = player_.GetDeltaPosition();
                     camera_.offset.x -= d_pos.x;
@@ -268,6 +296,7 @@ public:
                     if(player_.GetHealth() <= 0)
                     {
                         game_over_ = true;
+//                        CloseWindow();
                         break;
                     }
                     else
@@ -280,7 +309,7 @@ public:
             }
             else
             {
-                ClearBackground(RAYWHITE);
+//                ClearBackground(RAYWHITE);
                 DrawText("PRESS [o] TO CONTINUE",
                      GetScreenWidth()/2 - MeasureText("PRESS [o] TO CONTINUE", 10)/2,
                      GetScreenHeight()/2,
@@ -291,13 +320,27 @@ public:
         }
         else
         {
+            is_splash = true;
+
+            // limpeza
+            for(auto enemy: enemies_)
+            {
+                enemy.ResetPosition({-10, -10});
+            }
+            enemies_.clear();
+
             // Joystick rotation
             if (IsGamepadAvailable(GAMEPAD_PLAYER1))
             {
                 if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 10))
                 {
-                    Init();
+
                     game_over_ = false;
+
+                    walls_ = std::vector<Wall>();
+                    Init();
+
+
                 }
             }
         }

@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     currentFrame = 0;
     framesCounter = 0;
     framesSpeed = 6; 
-    is_splash = true;
+//    is_splash = true;
 
 
 
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
         // Screen splash
         //----------------------------------------------------------------------------------
         //
-        if (is_splash)
+        if (game.is_splash)
         {
 			framesCounter++;
 			if (framesCounter >= (60/framesSpeed))
@@ -62,19 +62,28 @@ int main(int argc, char* argv[])
 				frameRec.x = (float)currentFrame*(float)start.width/4;
 			}
 			if (IsKeyPressed(KEY_ENTER))
-                is_splash = false;
-            if (IsGamepadAvailable(GAMEPAD_PLAYER1))
+            {
+                game.is_splash = false;
+//                CloseWindow();
+                game.Init();
+
+            }
+			if (IsGamepadAvailable(GAMEPAD_PLAYER1))
             {
                 if (IsGamepadButtonDown(GAMEPAD_PLAYER1, 10))
 //                IsGamepadButtonPressed()
                 {
-                    is_splash = false;
+                    game.is_splash = false;
+//                    CloseWindow();
                 }
             }
 			BeginDrawing();
-				ClearBackground(RAYWHITE);
-				DrawTexture(menu_bck, 0, 0, WHITE);
-				DrawTextureRec(start, frameRec, position, WHITE);  // Draw part of the texture
+            Color texture_color = WHITE;
+            if (game.game_over_) texture_color = RED;
+            if (game.victory_) texture_color = GREEN;
+            ClearBackground(RAYWHITE);
+            DrawTexture(menu_bck, 0, 0, texture_color);
+            DrawTextureRec(start, frameRec, position, RAYWHITE);  // Draw part of the texture
 			EndDrawing();
 		}
         else

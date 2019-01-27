@@ -35,6 +35,14 @@ public:
         speed_ = speed;
     }
 
+    void ResetPosition(Vector2 pos)
+    {
+        position_ = pos;
+        speed_ = {0, 0};
+
+        Update();
+    }
+
     void Update()
     {
         position_.x += speed_.x;
