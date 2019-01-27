@@ -36,7 +36,7 @@ public:
     Game(int w, int h) : width_(w), height_(h), game_over_(false), pause_(false), frames_counter_(0)
     {
         InitWindow(w, h, "Home");
-
+        ToggleFullscreen();
         Init();
     };
 
