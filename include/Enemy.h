@@ -39,6 +39,15 @@ public:
     {
         position_.x += speed_.x;
         position_.y -= speed_.y;
+        
+        // wall behaviour
+        float radius = sprite_.GetHeight()/2;
+        
+        if  (position_.x > 1920 + radius) position_.x = -(radius);
+        else if (position_.x < 0 - radius) position_.x = 1920 + radius;
+        if (position_.y > 1080 + radius) position_.y = -(radius);
+        else if (position_.y < 0 - radius) position_.y = 1080 + radius;
+
         sprite_.SetPose(position_, 0);
     }
     void Draw()

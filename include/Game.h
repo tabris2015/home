@@ -52,6 +52,9 @@ public:
                 {1283, 935},
                 {1366, 565}
         };
+        std::string small_sprites[5] = {
+
+        };
 
         for(auto e: small_init_pos)
         {
